@@ -1,4 +1,4 @@
-#include <dgEngine.h>
+#include <dragon/dragon.h>
 
 DGAPI DG_BOOL dgCreateNewWindow(DgWindowCreateParams params) {
 	if(params.shareResources) {
