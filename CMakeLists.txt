@@ -4,7 +4,7 @@ project(Dragon-Source VERSION 0.0.0.1)
 
 set(C_FILES )
 set(CC_FILES )
-set(CXX_FILES dg/dgEngine.cpp dg/init.cpp)
+set(CXX_FILES dg/dgEngine.cpp dg/init.cpp dg/internal.cpp dg/validationLayers.cpp)
 set(M_FILES )
 
 set(SRC ${C_FILES} ${CC_FILES} ${CXX_FILES} ${M_FILES})
