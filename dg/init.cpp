@@ -9,6 +9,8 @@ std::vector<GPU> dgEngine::gpus;
 std::vector<VkExtensionProperties> dgEngine::supportedExtensions;
 VkInstance dgEngine::vkInstance;
 
+std::vector<const char*> dgStreamEngine::availibleLayerNames;
+
 DGAPI void dgInit(std::string appName) {
     // Assorted Dragon Setup methods
     dgEngine::appName = appName;

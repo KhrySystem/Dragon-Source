@@ -1,5 +1,7 @@
 #include <dragon/dragon.hpp>
 
+uint32_t dgEngine::gpuCount;
+
 DGAPI std::vector<GPU> dgGetGPUs() {
 	vkEnumeratePhysicalDevices(dgEngine::vkInstance, &dgEngine::gpuCount, nullptr);
 	if(dgEngine::gpuCount == 0) {
