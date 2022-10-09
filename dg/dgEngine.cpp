@@ -28,7 +28,6 @@ DGAPI DG_BOOL dgCreateNewWindow(DgWindowCreateParams params) {
 }
 
 DGAPI DG_BOOL dgShouldWindowClose(int index) {
-	printf("Should window %i close: %i\n", index, glfwWindowShouldClose(dgEngine::windows.at(index)));
 	return glfwWindowShouldClose(dgEngine::windows.at(index));
 }
 
