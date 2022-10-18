@@ -1,6 +1,11 @@
 #include <dragon/dragon.hpp>
 
-DGAPI Dragon::setOption(const uint32_t option, DgBool32 value) {
+DgBool32 Dragon::Options::ExtensionOptions::ironEnabled;
+DgBool32 Dragon::Options::ExtensionOptions::lightEnabled;
+DgBool32 Dragon::Options::ExtensionOptions::streamEnabled;
+DgBool32 Dragon::Options::ExtensionOptions::thunderEnabled;
+
+DGAPI void Dragon::setOption(const uint32_t option, DgBool32 value) {
 	switch(option) {
 		case DRAGON_IRONBREATH_ENABLED: 
 			Dragon::Options::ExtensionOptions::ironEnabled = value;

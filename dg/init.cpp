@@ -74,11 +74,12 @@ DGAPI DgBool32 DragonIsExtensionLayerSupported(std::string layerName) {
             return DG_FALSE;
         }
     }
-    if(Dragon::getOption(DRAGON_STREAMBREATH_ENABLED))
+    if(Dragon::getOption(DRAGON_STREAMBREATH_ENABLED)) {
         Dragon::Stream::init();
         Dragon::engine::createInfo.ppEnabledLayerNames = Dragon::Stream::engine::availibleLayerNames.data();
-    else
+    } else {
         Dragon::engine::createInfo.ppEnabledExtensionNames = NULL;
+    }
     return DG_TRUE;
 }
 
