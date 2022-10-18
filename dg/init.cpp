@@ -1,44 +1,38 @@
 #include <dragon/dragon.hpp>
 
-VkApplicationInfo dgEngine::appInfo;
-VkInstanceCreateInfo dgEngine::createInfo;
-unsigned int dgEngine::glfwExtensionCount;
-std::vector<const char*> dgEngine::extensions;
-std::vector<VkExtensionProperties> dgEngine::supportedExtensions;
-std::vector<const char*> dgEngine::requestedValidationLayers;
-unsigned int dgEngine::layerCount;
-std::vector<VkLayerProperties> dgEngine::availableLayers;
-VkDebugUtilsMessengerEXT dgEngine::debugMessenger;
-VkDebugUtilsMessengerCreateInfoEXT dgEngine::debugMessengerCreateInfo;
+VkApplicationInfo Dragon::engine::appInfo;
 std::string concancate(std::string s1, std::string s2);
+VkInstanceCreateInfo Dragon::engine::createInfo;
+std::vector<const char*> Dragon::engine::extensions;
+unsigned int Dragon::engine::glfwExtensionCount;
+std::vector<Dragon::GPU> Dragon::engine::gpus;
+std::vector<VkExtensionProperties> Dragon::engine::supportedExtensions;
+VkInstance Dragon::engine::vkInstance;
+std::vector<const char*> Dragon::Stream::engine::availibleLayerNames;
 
-DGAPI void dgInit(std::string appName) {
+DGAPI void Dragon::init(std::string appName) {
     // Assorted Dragon Setup methods
-    dgEngine::appName = appName;
-    #ifndef DRAGON_FULL_POWER
-        dgEngine::requestedValidationLayers.emplace_back("VK_LAYER_KHRONOS_validation");
-    #endif
+    Dragon::engine::appName = appName;
 
     // GLFW Setup
     if(!glfwInit())
-        throw dgGLFWInitializationFailedException() << DgExceptionInfo("GLFW Initialization Failed.");
+        throw Dragon::GLFWInitializationFailedException() << Dragon::ExceptionInfo("GLFW Initialization Failed.");
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
     if(!glfwVulkanSupported())
-        throw dgGLFWVulkanNotSupportedException() << DgExceptionInfo("GLFW didn't find any Vulkan Support.");
+        throw Dragon::GLFWVulkanNotSupportedException() << Dragon::ExceptionInfo("GLFW didn't find any Vulkan Support.");
 
     //Vulkan Setup
-    dgEngine::appInfo.apiVersion = VK_API_VERSION_1_2;
-    dgEngine::appInfo.applicationVersion = VK_MAKE_VERSION(0, 0, 0);
-    dgEngine::appInfo.engineVersion = VK_MAKE_VERSION(0, 0, 1);
-    dgEngine::appInfo.pApplicationName = appName.c_str();
-    dgEngine::appInfo.pEngineName = "Dragon Engine";
-    dgEngine::appInfo.pNext = NULL;
-    dgEngine::appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-
-    dgEngine::createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    dgEngine::createInfo.pApplicationInfo = &dgEngine::appInfo;
+    Dragon::engine::appInfo.apiVersion = VK_API_VERSION_1_2;
+    Dragon::engine::appInfo.applicationVersion = VK_MAKE_VERSION(0, 0, 0);
+    Dragon::engine::appInfo.engineVersion = VK_MAKE_VERSION(0, 0, 1);
+    Dragon::engine::appInfo.pApplicationName = appName.c_str();
+    Dragon::engine::appInfo.pEngineName = "Dragon Engine";
+    Dragon::engine::appInfo.pNext = NULL;
+    Dragon::engine::appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    Dragon::engine::createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    Dragon::engine::createInfo.pApplicationInfo = &Dragon::engine::appInfo;
 
     //Vulkan Extension Layer Setup
     int glfwExtensionCount;
@@ -46,62 +40,31 @@ DGAPI void dgInit(std::string appName) {
     for(unsigned int i = 0; i < glfwExtensionCount; i++) {
         Dragon::engine::extensions.emplace_back(glfwExtensions[i]);
     }
+
     #ifdef DG_PLAT_MACOSX
-        dgEngine::extensions.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-
-        dgEngine::createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+        Dragon::engine::extensions.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+        Dragon::engine::createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
     #endif
-    #ifndef DRAGON_FULL_POWER
-        if(!dgAddValidationLayerToEngine("VK_LAYER_KHRONOS_validation"))
-            throw dgVulkanValidationLayerNotFoundException() << DgExceptionInfo("Vulkan Validation Layer \"VK_LAYER_KHRONOS_validation\" not found");
-        
-        if(!dgAddExtensionLayerToEngine(VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
-            throw dgVulkanExtensionLayerNotFoundException() << DgExceptionInfo(
-                concancate(
-                    concancate(
-                        "Vulkan Extension Layer \"", 
-                        VK_EXT_DEBUG_UTILS_EXTENSION_NAME
-                    ).c_str(), 
-                    "\"not found"
-                ).c_str()
-            );
-    #endif
+    
     VkResult result;
-
     // Vulkan Instance Creation
-    result = vkCreateInstance(&dgEngine::createInfo, NULL, &dgEngine::vkInstance);
+    result = vkCreateInstance(&Dragon::engine::createInfo, NULL, &Dragon::engine::vkInstance);
     if(result != VK_SUCCESS)
-        throw dgVulkanInitializationFailedException() << DgExceptionInfo("Vulkan Instance Creation Failed");
+        if(Dragon::getOption( DRAGON_STREAMBREATH_ENABLED))
+            throw Dragon::VulkanInitializationFailedException() << Dragon::ExceptionInfo(("Vulkan Instance Creation Failed with " + dgConvertVkResultToString(result)).c_str());
+        else
+            throw Dragon::VulkanInitializationFailedException() << Dragon::ExceptionInfo("Vulkan Instance Creation Failed");
 
-    #ifndef DRAGON_FULL_POWER
-        // Vulkan Validation Layer Setup
-        vkEnumerateInstanceLayerProperties(&dgEngine::layerCount, nullptr);
-
-        dgEngine::availableLayers.resize(dgEngine::layerCount);
-        vkEnumerateInstanceLayerProperties(&dgEngine::layerCount, dgEngine::availableLayers.data());
-
-        dgEngine::debugMessengerCreateInfo.flags = NULL;
-        dgEngine::debugMessengerCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        dgEngine::debugMessengerCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        dgEngine::debugMessengerCreateInfo.pfnUserCallback = dgVkValidationLayerDebugCalback;
-        dgEngine::debugMessengerCreateInfo.pNext = NULL;
-        dgEngine::debugMessengerCreateInfo.pUserData = NULL;
-        dgEngine::debugMessengerCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-
-        result = dgCreateDebugUtilsMessengerEXT(dgEngine::vkInstance, &dgEngine::debugMessengerCreateInfo, NULL, &dgEngine::debugMessenger);
-        if(result != VK_SUCCESS) {
-            throw dgVulkanDebugUtilsMessengerEXTCreationFailedException() << DgExceptionInfo(("Vulkan DebugUtilsMessengerEXT Creation Failed with " + dgConvertVkResultToString(result)).c_str());
-        }
-    #endif
+    Dragon::engine::gpus = Dragon::getGPUs();
 }
 
-DGAPI DG_BOOL dgAddExtensionLayerToEngine(std::string layerName) {
-    dgEngine::extensions.emplace_back(layerName.c_str());
+DGAPI DgBool32 DragonIsExtensionLayerSupported(std::string layerName) {
+    Dragon::engine::extensions.emplace_back(layerName.c_str());
 
-    for(const char* extensionName : dgEngine::extensions) {
+    for(const char* extensionName : Dragon::engine::extensions) {
         bool layerFound = DG_FALSE;
 
-        for(VkExtensionProperties properties : dgEngine::supportedExtensions) {
+        for(VkExtensionProperties properties : Dragon::engine::supportedExtensions) {
             if(strcmp(extensionName, properties.extensionName) == 0) {
                 layerFound = DG_TRUE;
                 break;
@@ -112,37 +75,16 @@ DGAPI DG_BOOL dgAddExtensionLayerToEngine(std::string layerName) {
             return DG_FALSE;
         }
     }
-
-    dgEngine::createInfo.ppEnabledLayerNames = dgEngine::requestedValidationLayers.data();
+    if(Dragon::getOption(DRAGON_STREAMBREATH_ENABLED)) {
+        Dragon::Stream::init();
+        Dragon::engine::createInfo.ppEnabledLayerNames = Dragon::Stream::engine::availibleLayerNames.data();
+    } else {
+        Dragon::engine::createInfo.ppEnabledExtensionNames = NULL;
+    }
     return DG_TRUE;
 }
 
-DGAPI DG_BOOL dgAddValidationLayerToEngine(std::string layerName) {
-    dgEngine::requestedValidationLayers.emplace_back(layerName.c_str());
-
-    for (const char* layerName : dgEngine::requestedValidationLayers) {
-        bool layerFound = false;
-
-        for (VkLayerProperties layerProperties : dgEngine::availableLayers) {
-            if (strcmp(layerName, layerProperties.layerName) == 0) {
-                layerFound = true;
-                break;
-            }
-        }
-
-        if (!layerFound) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 DGAPI void dgTerminate() {
-    #ifndef DRAGON_FULL_POWER
-        dgDestroyDebugUtilsMessengerEXT(dgEngine::vkInstance, dgEngine::debugMessenger, nullptr);
-    #endif
-
-    vkDestroyInstance(dgEngine::vkInstance, nullptr);
+    vkDestroyInstance(Dragon::engine::vkInstance, nullptr);
     glfwTerminate();
 }

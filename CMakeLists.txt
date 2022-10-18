@@ -7,7 +7,7 @@ file(GLOB_RECURSE M_FILES   ./*.m)
 
 set(SRC ${C_FILES} ${CXX_FILES} ${M_FILES})
 
-add_library(Dragon-Source SHARED ${SRC})
+add_library(dragon-0 SHARED ${SRC})
 
 target_include_directories(dragon-0 PUBLIC ${Dragon_INCLUDE_DIRS})
 target_link_libraries(dragon-0 PUBLIC 
