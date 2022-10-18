@@ -41,9 +41,10 @@ DGAPI void dgInit(std::string appName) {
     dgEngine::createInfo.pApplicationInfo = &dgEngine::appInfo;
 
     //Vulkan Extension Layer Setup
-    const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&dgEngine::glfwExtensionCount);
-    for(unsigned int i = 0; i < dgEngine::glfwExtensionCount; i++) {
-        dgEngine::extensions.emplace_back(glfwExtensions[i]);
+    int glfwExtensionCount;
+    const char** glfwExtensions = glfwGetRequiredInstanceExtensions(glfwExtensionCount);
+    for(unsigned int i = 0; i < glfwExtensionCount; i++) {
+        Dragon::engine::extensions.emplace_back(glfwExtensions[i]);
     }
     #ifdef DG_PLAT_MACOSX
         dgEngine::extensions.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
