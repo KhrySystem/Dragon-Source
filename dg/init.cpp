@@ -1,17 +1,17 @@
 #include <dragon/dragon.hpp>
 
-VkApplicationInfo Dragon::engine::appInfo;
+VkApplicationInfo Dragon::Engine::appInfo;
 std::string concancate(std::string s1, std::string s2);
-VkInstanceCreateInfo Dragon::engine::createInfo;
-std::vector<const char*> Dragon::engine::extensions;
-std::vector<Dragon::GPU> Dragon::engine::gpus;
-std::vector<VkExtensionProperties> Dragon::engine::supportedExtensions;
-VkInstance Dragon::engine::vkInstance;
-std::vector<const char*> Dragon::Stream::engine::availibleLayerNames;
+VkInstanceCreateInfo Dragon::Engine::createInfo;
+std::vector<const char*> Dragon::Engine::extensions;
+std::vector<Dragon::GPU> Dragon::Engine::gpus;
+std::vector<VkExtensionProperties> Dragon::Engine::supportedExtensions;
+VkInstance Dragon::Engine::vkInstance;
+std::vector<const char*> Dragon::Stream::Engine::availibleLayerNames;
 
 DGAPI void Dragon::init(std::string appName) {
     // Assorted Dragon Setup methods
-    Dragon::engine::appName = appName;
+    Dragon::Engine::appName = appName;
 
     // GLFW Setup
     if(!glfwInit())
@@ -23,67 +23,69 @@ DGAPI void Dragon::init(std::string appName) {
         throw Dragon::GLFWVulkanNotSupportedException() << Dragon::ExceptionInfo("GLFW didn't find any Vulkan Support.");
 
     //Vulkan Setup
-    Dragon::engine::appInfo.apiVersion = VK_API_VERSION_1_2;
-    Dragon::engine::appInfo.applicationVersion = VK_MAKE_VERSION(0, 0, 0);
-    Dragon::engine::appInfo.engineVersion = VK_MAKE_VERSION(0, 0, 1);
-    Dragon::engine::appInfo.pApplicationName = appName.c_str();
-    Dragon::engine::appInfo.pEngineName = "Dragon Engine";
-    Dragon::engine::appInfo.pNext = NULL;
-    Dragon::engine::appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    Dragon::engine::createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    Dragon::engine::createInfo.pApplicationInfo = &Dragon::engine::appInfo;
+    Dragon::Engine::appInfo.apiVersion = VK_API_VERSION_1_2;
+    Dragon::Engine::appInfo.applicationVersion = VK_MAKE_VERSION(0, 0, 0);
+    Dragon::Engine::appInfo.engineVersion = VK_MAKE_VERSION(0, 0, 1);
+    Dragon::Engine::appInfo.pApplicationName = appName.c_str();
+    Dragon::Engine::appInfo.pEngineName = "Dragon Engine";
+    Dragon::Engine::appInfo.pNext = NULL;
+    Dragon::Engine::appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    Dragon::Engine::createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    Dragon::Engine::createInfo.pApplicationInfo = &Dragon::Engine::appInfo;
 
     //Vulkan Extension Layer Setup
     uint32_t glfwExtensionCount;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
     for(unsigned int i = 0; i < glfwExtensionCount; i++) {
-        Dragon::engine::extensions.emplace_back(glfwExtensions[i]);
+        Dragon::Engine::extensions.emplace_back(glfwExtensions[i]);
     }
 
     #ifdef DG_PLAT_MACOSX
-        Dragon::engine::extensions.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-        Dragon::engine::createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+        Dragon::Engine::extensions.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+        Dragon::Engine::createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
     #endif
     
+    if(Dragon::getOption(DRAGON_FIREBREATH_ENABLED))
+        Dragon::Fire::init();
+
     VkResult result;
     // Vulkan Instance Creation
-    result = vkCreateInstance(&Dragon::engine::createInfo, NULL, &Dragon::engine::vkInstance);
+    result = vkCreateInstance(&Dragon::Engine::createInfo, NULL, &Dragon::Engine::vkInstance);
     if(result != VK_SUCCESS)
-        if(Dragon::getOption( DRAGON_STREAMBREATH_ENABLED))
+        if(Dragon::getOption(DRAGON_STREAMBREATH_ENABLED))
             throw Dragon::VulkanInitializationFailedException() << Dragon::ExceptionInfo(("Vulkan Instance Creation Failed with " + dgConvertVkResultToString(result)).c_str());
         else
             throw Dragon::VulkanInitializationFailedException() << Dragon::ExceptionInfo("Vulkan Instance Creation Failed");
 
-    Dragon::engine::gpus = Dragon::getGPUs();
+    Dragon::Engine::gpus = Dragon::getGPUs();
+
+    // OpenAL setup
+    Dragon::Engine::activeDevice = alcOpenDevice(NULL);
+
+    if (Dragon::Engine::activeDevice) {
+        Dragon::Engine::alcContext = alcCreateContext(Dragon::Engine::activeDevice, NULL);
+        alcMakeContextCurrent(Dragon::Engine::alcContext);
+    }
 }
 
-DGAPI DgBool32 DragonIsExtensionLayerSupported(std::string layerName) {
-    Dragon::engine::extensions.emplace_back(layerName.c_str());
-
-    for(const char* extensionName : Dragon::engine::extensions) {
-        bool layerFound = DG_FALSE;
-
-        for(VkExtensionProperties properties : Dragon::engine::supportedExtensions) {
-            if(strcmp(extensionName, properties.extensionName) == 0) {
-                layerFound = DG_TRUE;
-                break;
-            }
-        }
-
-        if(!layerFound) {
-            return DG_FALSE;
+DGAPI DgBool32 Dragon::isExtensionLayerSupported(std::string layerName) {
+    for(VkExtensionProperties properties : Dragon::Engine::supportedExtensions) {
+        if(strcmp(layerName.c_str(), properties.extensionName) == DG_TRUE) {
+            return DG_TRUE;
         }
     }
-    if(Dragon::getOption(DRAGON_STREAMBREATH_ENABLED)) {
-        Dragon::Stream::init();
-        Dragon::engine::createInfo.ppEnabledLayerNames = Dragon::Stream::engine::availibleLayerNames.data();
-    } else {
-        Dragon::engine::createInfo.ppEnabledExtensionNames = NULL;
-    }
-    return DG_TRUE;
+    return DG_FALSE;
 }
 
-DGAPI void dgTerminate() {
-    vkDestroyInstance(Dragon::engine::vkInstance, nullptr);
+DGAPI void Dragon::terminate() {
+    vkDestroyInstance(Dragon::Engine::vkInstance, nullptr);
     glfwTerminate();
+    Dragon::Fire::terminate();
+    Dragon::Iron::terminate();
+    Dragon::Light::terminate();
+    Dragon::Stream::terminate();
+    Dragon::Thunder::terminate();
+    alcMakeContextCurrent(NULL);
+    alcDestroyContext(Dragon::Engine::alcContext);
+    alcCloseDevice(Dragon::Engine::activeDevice);
 }

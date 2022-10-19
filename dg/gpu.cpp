@@ -1,14 +1,14 @@
 #include <dragon/dragon.hpp>
 
-uint32_t Dragon::engine::gpuCount;
+uint32_t Dragon::Engine::gpuCount;
 
 DGAPI std::vector<Dragon::GPU> Dragon::getGPUs() {
-	vkEnumeratePhysicalDevices(Dragon::engine::vkInstance, &Dragon::engine::gpuCount, nullptr);
-	if(Dragon::engine::gpuCount == 0) {
+	vkEnumeratePhysicalDevices(Dragon::Engine::vkInstance, &Dragon::Engine::gpuCount, nullptr);
+	if(Dragon::Engine::gpuCount == 0) {
 		throw Dragon::VulkanNoPhysicalDevicesFoundException() << Dragon::ExceptionInfo("No VkPhysicalDevices Found");
 	}
-	std::vector<VkPhysicalDevice> devices(Dragon::engine::gpuCount);
-	vkEnumeratePhysicalDevices(Dragon::engine::vkInstance, &Dragon::engine::gpuCount, devices.data());
+	std::vector<VkPhysicalDevice> devices(Dragon::Engine::gpuCount);
+	vkEnumeratePhysicalDevices(Dragon::Engine::vkInstance, &Dragon::Engine::gpuCount, devices.data());
 	std::vector<Dragon::GPU> gpus;
 	for(VkPhysicalDevice handle : devices) {
 		Dragon::GPU gpu;

@@ -1,21 +1,21 @@
 #include <dragon/dragon.hpp>
 
-std::string Dragon::engine::appName;
-std::vector<GLFWwindow*> Dragon::engine::windows;
+std::string Dragon::Engine::appName;
+std::vector<GLFWwindow*> Dragon::Engine::windows;
 
 DGAPI DgBool32 Dragon::createNewWindow(Dragon::WindowCreateParams params) {
 	GLFWwindow* window;
-	if(Dragon::engine::windows.size() > 0) {
+	if(Dragon::Engine::windows.size() > 0) {
 		window = glfwCreateWindow(
 			params.width, params.height,
-			Dragon::engine::appName.c_str(),
+			Dragon::Engine::appName.c_str(),
 			NULL,
-			Dragon::engine::windows.at(0)
+			Dragon::Engine::windows.at(0)
 		);
 	} else {
 		window = glfwCreateWindow(
 			params.width, params.height,
-			Dragon::engine::appName.c_str(),
+			Dragon::Engine::appName.c_str(),
 			NULL, NULL
 		);
 	}
@@ -23,12 +23,12 @@ DGAPI DgBool32 Dragon::createNewWindow(Dragon::WindowCreateParams params) {
 	if(window == NULL)
 		throw Dragon::GLFWWindowCreationFailedException() << Dragon::ExceptionInfo("GLFW window handle was NULL.");
 	
-	Dragon::engine::windows.push_back(window);
+	Dragon::Engine::windows.push_back(window);
 	return DG_TRUE;
 }
 
 DGAPI DgBool32 Dragon::shouldWindowClose(int index) {
-	return glfwWindowShouldClose(Dragon::engine::windows.at(index));
+	return glfwWindowShouldClose(Dragon::Engine::windows.at(index));
 }
 
 DGAPI void Dragon::update() {
@@ -36,5 +36,5 @@ DGAPI void Dragon::update() {
 }
 
 DGAPI void Dragon::closeWindow(int index) {
-	glfwDestroyWindow(Dragon::engine::windows.at(index));
+	glfwDestroyWindow(Dragon::Engine::windows.at(index));
 }
