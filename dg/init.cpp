@@ -4,7 +4,6 @@ VkApplicationInfo Dragon::engine::appInfo;
 std::string concancate(std::string s1, std::string s2);
 VkInstanceCreateInfo Dragon::engine::createInfo;
 std::vector<const char*> Dragon::engine::extensions;
-unsigned int Dragon::engine::glfwExtensionCount;
 std::vector<Dragon::GPU> Dragon::engine::gpus;
 std::vector<VkExtensionProperties> Dragon::engine::supportedExtensions;
 VkInstance Dragon::engine::vkInstance;
@@ -35,8 +34,8 @@ DGAPI void Dragon::init(std::string appName) {
     Dragon::engine::createInfo.pApplicationInfo = &Dragon::engine::appInfo;
 
     //Vulkan Extension Layer Setup
-    int glfwExtensionCount;
-    const char** glfwExtensions = glfwGetRequiredInstanceExtensions(glfwExtensionCount);
+    uint32_t glfwExtensionCount;
+    const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
     for(unsigned int i = 0; i < glfwExtensionCount; i++) {
         Dragon::engine::extensions.emplace_back(glfwExtensions[i]);
     }

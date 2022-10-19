@@ -10,14 +10,7 @@ set(SRC ${C_FILES} ${CXX_FILES} ${M_FILES})
 add_library(dragon-0 SHARED ${SRC})
 
 target_include_directories(dragon-0 PUBLIC ${Dragon_INCLUDE_DIRS})
-target_link_libraries(dragon-0 PUBLIC 
-    ${Dragon_LINK_LIBRARIES} 
-    Dragon::Firebreath
-    Dragon::Ironbreath 
-    Dragon::Lightbreath 
-    Dragon::Streambreath
-    Dragon::Thunderbreath
-)
+target_link_libraries(dragon-0 PUBLIC ${Dragon_LINK_LIBRARIES})
 target_link_libraries(dragon-0 INTERFACE ${Dragon_LINK_INTERFACES})
 
 add_library(Dragon::Dragon ALIAS dragon-0)
