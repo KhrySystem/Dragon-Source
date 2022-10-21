@@ -1,7 +1,5 @@
 #include <dragon/dragon.hpp>
 
-using namespace Dragon:
-
 VkApplicationInfo Dragon::Engine::appInfo;
 std::string concancate(std::string s1, std::string s2);
 VkInstanceCreateInfo Dragon::Engine::createInfo;
