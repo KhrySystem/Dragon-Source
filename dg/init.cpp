@@ -47,6 +47,17 @@ DGAPI void Dragon::init(std::string appName) {
     
     if(Dragon::getOption(DRAGON_FIREBREATH_ENABLED))
         Dragon::Fire::init();
+    
+    if(Dragon::getOption(DRAGON_IRONBREATH_ENABLED))
+        Dragon::Iron::init();
+    
+    if(Dragon::getOption(DRAGON_LIGHTBREATH_ENABLED))
+        Dragon::Light::init();
+
+    #ifdef DRAGON_OPENCL_FOUND
+        if(Dragon::getOption(DRAGON_THUNDERBREATH_ENABLED))
+            Dragon::Thunder::init();
+    #endif
 
     VkResult result;
     // Vulkan Instance Creation
@@ -84,7 +95,9 @@ DGAPI void Dragon::terminate() {
     Dragon::Iron::terminate();
     Dragon::Light::terminate();
     Dragon::Stream::terminate();
-    Dragon::Thunder::terminate();
+    #ifdef DRAGON_OPENCL_FOUND
+        Dragon::Thunder::terminate();
+    #endif
     alcMakeContextCurrent(NULL);
     alcDestroyContext(Dragon::Engine::alcContext);
     alcCloseDevice(Dragon::Engine::activeDevice);
