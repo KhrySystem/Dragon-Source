@@ -8,6 +8,8 @@ std::vector<Dragon::GPU> Dragon::Engine::gpus;
 std::vector<VkExtensionProperties> Dragon::Engine::supportedExtensions;
 VkInstance Dragon::Engine::vkInstance;
 std::vector<const char*> Dragon::Stream::Engine::availibleLayerNames;
+ALCdevice* Dragon::Engine::activeDevice;
+ALCcontext* Dragon::Engine::alcContext;
 
 DGAPI void Dragon::init(std::string appName) {
     // Assorted Dragon Setup methods

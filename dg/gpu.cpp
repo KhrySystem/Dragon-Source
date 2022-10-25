@@ -21,7 +21,7 @@ DGAPI std::vector<Dragon::GPU> Dragon::getGPUs() {
 	return gpus;
 }
 
-DGAPI int dgRateGPU(Dragon::GPU gpu, Dragon::GPURequirements reqs) {
+DGAPI int dgRateGPU(Dragon::GPU gpu) {
 	int score = 1000;
 
 	switch(gpu.properties.deviceType) {

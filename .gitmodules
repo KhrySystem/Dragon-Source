@@ -1,0 +1,6 @@
+[submodule "glfw"]
+	path = glfw
+	url = https://github.com/glfw/glfw
+[submodule "openal"]
+	path = openal
+	url = https://github.com/kcat/OpenAL-Soft

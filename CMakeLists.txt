@@ -1,16 +1,19 @@
 cmake_minimum_required(VERSION 3.20)
 
-file(GLOB_RECURSE C_FILES   ./dg/*.c)
-file(GLOB_RECURSE CXX_FILES ./dg/*.cpp)
-file(GLOB_RECURSE M_FILES   ./dg/*.m)
+set(CXX_FILES dg/audio/devices.cpp dg/dgEngine.cpp dg/gpu.cpp dg/init.cpp dg/internal.cpp dg/options.cpp)
 
-
-set(SRC ${C_FILES} ${CXX_FILES} ${M_FILES})
-
-add_library(dragon-0 SHARED ${SRC})
-
+if(DRAGON_BUILD_SHARED)
+	set(OLD_BUILD_SHARED ${BUILD_SHARED_LIBS})
+	set(BUILD_SHARED_LIBS ON)
+	add_subdirectory(glfw)
+	add_subdirectory(openal)
+	add_library(dragon-0 SHARED ${CXX_FILES})
+	set(BUILD_SHARED_LIBS ${OLD_BUILD_SHARED})
+else() 
+	add_subdirectory(glfw)
+	add_subdirectory(openal)
+	add_library(dragon-0 STATIC ${CXX_FILES})
+endif()
 target_include_directories(dragon-0 PUBLIC ${Dragon_INCLUDE_DIRS})
 target_link_libraries(dragon-0 PUBLIC ${Dragon_LINK_LIBRARIES} ${Dragon_EXTENSION_TARGETS})
-
 add_library(Dragon::Dragon ALIAS dragon-0)
-list(APPEND Dragon_LINK_LIBRARIES Dragon::Dragon)
