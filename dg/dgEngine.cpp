@@ -22,16 +22,8 @@ DGAPI DgBool32 Dragon::createNewWindow(Dragon::WindowCreateParams params) {
 
 	if(window == NULL)
 		if(Dragon::getOption(DRAGON_STREAMBREATH_ENABLED)) {
-			Dragon::Error::ErrorType type = Dragon::Error::ErrorType::FATAL;
-			Dragon::Error::ErrorSeverity severity = Dragon::Error::ErrorSeverity::ERR;
-			Dragon::Error::System system = Dragon::Error::System::GRAPHICS;
-			Dragon::Error::ErrorInfo info{};
-			info.code = 33000; // Fatal Error in graphics, initialization, first call to throwError
-			info.message = "GLFWwindow failed to be initialized.";
-			info.severity = &severity;
-			info.system = &system;
-			info.type = &type;
-
+			info.code = "3.3.0.0"; // Fatal Error in graphics, initialization, first call to throwError
+			info.message = "GLFW window failed to be created";
 			Dragon::Stream::throwError(info);
 		}
 	

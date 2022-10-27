@@ -35,15 +35,32 @@ DGAPI int splitString(const char *str, char c, char ***arr)
     return count;
 }
 
-DGAPI void setupGLFW() {
-    if(!glfwInit())
-        throw Dragon::GLFWInitializationFailedException() << Dragon::ExceptionInfo("GLFW Initialization Failed.");
+DGAPI DgBool32 setupGLFW() {
+    if(!glfwInit()) {
+        if(Dragon::getOption(DRAGON_STREAMBREATH_ENABLED)) {
+            Dragon::Error::ErrorInfo info{};
+            info.code = "3.3.0.2";
+            info.message = "GLFW failed to be initialized";
+            Dragon::Stream::throwError(info);
+        }
+        return DG_FALSE;
+    }
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-    if(!glfwVulkanSupported())
-        throw Dragon::GLFWVulkanNotSupportedException() << Dragon::ExceptionInfo("GLFW didn't find any Vulkan Support.");
+    if(!glfwVulkanSupported()) {
+        if(Dragon::getOption(DRAGON_STREAMBREATH_ENABLED)) {
+            Dragon::Error::ErrorInfo info{};
+            info.code = "3.3.0.3";
+            info.message = "GLFW does not support Vulkan on this machine.";
+            Dragon::Stream::throwError(info);
+        }
+        return DG_FALSE;
+    }
+
+    return DG_TRUE;
 }
+
 DGAPI void setupVulkan(VkCreateInfo* pCreateInfo) {
     VkApplicationInfo appInfo{};
     #if defined(VK_VERSION_1_3)
@@ -77,76 +94,102 @@ DGAPI void setupVulkan(VkCreateInfo* pCreateInfo) {
         #pragma message "Enabling VK_KHR_PORTABILITY_ENUMERATION_EXTENSION for MacOS"
     #endif
 }
-DGAPI void setupExtensions() {
+
+DGAPI DgBool32 setupExtensions() {
     if(Dragon::getOption(DRAGON_FIREBREATH_ENABLED))
-        Dragon::Fire::init();
+        if(!Dragon::Fire::init()) {
+            return DG_FALSE;
+        }
     
     if(Dragon::getOption(DRAGON_IRONBREATH_ENABLED))
-        Dragon::Iron::init();
+        if(!Dragon::Iron::init()) {
+            return DG_FALSE;
+        }
     
     if(Dragon::getOption(DRAGON_LIGHTBREATH_ENABLED))
-        Dragon::Light::init();
+        if(!Dragon::Light::init()) {
+            return DG_FALSE;
+        }
 
     #ifdef DRAGON_OPENCL_FOUND
         if(Dragon::getOption(DRAGON_THUNDERBREATH_ENABLED))
-            Dragon::Thunder::init();
+            if(!Dragon::Thunder::init()) {
+                return DG_FALSE;
+            }
     #endif
 }
-DGAPI void createVulkanInstance(VkCreateInfo* pCreateInfo) {
+
+DGAPI DgBool32 createVulkanInstance(VkCreateInfo* pCreateInfo) {
     VkResult result = vkCreateInstance(pCreateInfo, NULL, &Dragon::Engine::vkInstance);
-    if(result != VK_SUCCESS)
-        if(Dragon::getOption(DRAGON_STREAMBREATH_ENABLED))
-            throw Dragon::VulkanInitializationFailedException() << Dragon::ExceptionInfo(("Vulkan Instance Creation Failed with " + dgConvertVkResultToString(result)).c_str());
-        else
-            throw Dragon::VulkanInitializationFailedException() << Dragon::ExceptionInfo("Vulkan Instance Creation Failed");
+    if(result != VK_SUCCESS) {
+        if(Dragon::getOption(DRAGON_STREAMBREATH_ENABLED)) {
+            Dragon::Error::ErrorInfo info{};
+            info.code = "3.3.0.4";
+            info.message = "Vulkan Instance creation failed with " + dgConvertVkResulttoString(result).c_str();
+            Dragon::Stream::throwError(info);
+        }
+        return DG_FALSE;
+    }
+    return DG_TRUE;
 }
-DGAPI void setupOpenAL() {
+DGAPI DgBool32 setupOpenAL() {
     ALString devListString = alcGetString(NULL, ALC_DEVICE_SPECIFIER);
     char ** devListNames = NULL;
 
     int devCount = splitString(devListString, NULL, &devListNames);
     for (i = 0; i < count; i++) {
-        
-    };
+        printf(devCount[i]);
+    }
 
     Dragon::Engine::alcContext = alcCreateContext(Dragon::Engine::activeDevice, NULL);
     alcMakeContextCurrent(Dragon::Engine::alcContext);
 
-    if(alcIsExtensionPresent(Dragon::Engine::activeDevice, "ALC_ENUMERATION_EXT")) {
-    }
-
     if((error = alGetError()) != AL_NO_ERROR) {
-        if(Dragon::getOption(DRAGON_STREAMBREATH_ENABLED))
-            throw Dragon::ALInitializationError() << Dragon::ExceptionInfo("OpenAL initialization generated error" + dgConvertAlErrorToString(error).c_str() + " before buffer generation.");
-        else 
-            throw Dragon::ALInitializationError() << Dragon::ExceptionInfo("OpenAL initialization generated an error before buffer generation.");
+        if(Dragon::getOption(DRAGON_STREAMBREATH_ENABLED)) {
+            Dragon::Error::ErrorInfo info{};
+            info.code = "3.3.1.0";
+            info.message = "OpenAL initialization generated " + dgConvertALErrorToString(error).c_str() + " before buffer generation";
+            Dragon::Stream::throwError(info);
+        }
+        return DG_FALSE;
     }
 
     alGenBuffers(NUM_BUFFERS, g_Buffers);
     if ((error = alGetError()) != AL_NO_ERROR)
     {
-        if(Dragon::getOption(DRAGON_STREAMBREATH_ENABLED))
-            throw Dragon::ALInitializationError() << Dragon::ExceptionInfo("OpenAL initialization generated error" + dgConvertAlErrorToString(error).c_str() + " when generating buffers.");
-        else 
-            throw Dragon::ALInitializationError() << Dragon::ExceptionInfo("OpenAL initialization generated an error when generating buffers.");
+        if(Dragon::getOption(DRAGON_STREAMBREATH_ENABLED)) {
+            Dragon::Error::ErrorInfo info{};
+            info.code = "3.3.1.1";
+            info.message = "OpenAL buffer generation failed with " + dgConvertALErrorToString(error).c_str();
+            Dragon::Stream::throwError(info);
+        }
     }
 }
 
 
 /// @brief Initializes DragonEngine fully. Uses hints set from before this function is called.
 /// @param appName The name of the window for GLFW, and the app for Vulkan.
-DGAPI void Dragon::init(std::string appName) {
+DGAPI DgBool32 Dragon::init(std::string appName) {
     // Assorted Dragon Setup methods
     Dragon::Engine::appName = appName;
     VkApplicationInfo appInfo{};
     VkCreateInfo createInfo{};
-    setupGLFW();
+    if(!setupExtensions()) {
+        return DG_FALSE;
+    }
+
     setupVulkan(&createInfo);
-    setupExtensions();
+
+    if(!setupGLFW()) {
+        return DG_FALSE;
+    }
 
     Dragon::Engine::gpus = Dragon::getGPUs();
+    if(Dragon::Engine::gpus.size() == 0) {
+        return DG_FALSE;
+    }
 
-    setupOpenAL();
+    return (setupOpenAL());
 }
 
 DGAPI DgBool32 Dragon::isExtensionLayerSupported(std::string layerName) {

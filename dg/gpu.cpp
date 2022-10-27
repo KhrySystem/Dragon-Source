@@ -5,7 +5,13 @@ uint32_t Dragon::Engine::gpuCount;
 DGAPI std::vector<Dragon::GPU> Dragon::getGPUs() {
 	vkEnumeratePhysicalDevices(Dragon::Engine::vkInstance, &Dragon::Engine::gpuCount, nullptr);
 	if(Dragon::Engine::gpuCount == 0) {
-		throw Dragon::VulkanNoPhysicalDevicesFoundException() << Dragon::ExceptionInfo("No VkPhysicalDevices Found");
+		if(Dragon::getOption(DRAGON_STREAMBREATH_ENABLED)) {
+			Dragon::Error::ErrorInfo info{};
+			info.code = "3.3.0.1";
+			info.message = "No valid VkPhysicalDevice found on this system";
+			Dragon::Stream::throwError(info);
+		}
+		return std::vector<Dragon::GPU>();
 	}
 	std::vector<VkPhysicalDevice> devices(Dragon::Engine::gpuCount);
 	vkEnumeratePhysicalDevices(Dragon::Engine::vkInstance, &Dragon::Engine::gpuCount, devices.data());
