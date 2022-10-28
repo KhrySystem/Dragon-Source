@@ -1,6 +1,8 @@
 [submodule "glfw"]
 	path = glfw
 	url = https://github.com/glfw/glfw
+	branch = master
+
 [submodule "openal"]
 	path = openal
 	url = https://github.com/kcat/OpenAL-Soft
