@@ -1,19 +1,21 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(CXX_FILES dg/audio/devices.cpp dg/dgEngine.cpp dg/gpu.cpp dg/init.cpp dg/internal.cpp dg/options.cpp)
+set(Dragon_LIB_NAME dragon-${Dragon_VERSION_MAJOR})
+
+set(CXX_FILES 
+	dg/audio/outputDevice.cpp 
+	dg/internal/gpu.cpp 
+	dg/internal/init.cpp 
+	dg/internal/option.cpp
+	dg/message/callbacks.cpp 
+)
 
 if(DRAGON_BUILD_SHARED)
-	set(OLD_BUILD_SHARED ${BUILD_SHARED_LIBS})
-	set(BUILD_SHARED_LIBS ON)
-	add_subdirectory(glfw)
-	add_subdirectory(openal)
-	add_library(dragon-0 SHARED ${CXX_FILES})
+	add_library(${Dragon_LIB_NAME} SHARED ${CXX_FILES} ${HPP_FILES})
 	set(BUILD_SHARED_LIBS ${OLD_BUILD_SHARED})
 else() 
-	add_subdirectory(glfw)
-	add_subdirectory(openal)
-	add_library(dragon-0 STATIC ${CXX_FILES})
+	add_library(${Dragon_LIB_NAME} STATIC ${CXX_FILES} ${HPP_FILES})
 endif()
-target_include_directories(dragon-0 PUBLIC ${Dragon_INCLUDE_DIRS})
-target_link_libraries(dragon-0 PUBLIC ${Dragon_LINK_LIBRARIES} ${Dragon_EXTENSION_TARGETS})
-add_library(Dragon::Dragon ALIAS dragon-0)
+target_include_directories(${Dragon_LIB_NAME} PUBLIC ${Dragon_INCLUDE_DIRS})
+target_link_libraries(${Dragon_LIB_NAME} PUBLIC glfw glm::glm openxr_loader OpenAL ${Vulkan_LIBRARIES})
+add_library(Dragon::Dragon ALIAS ${Dragon_LIB_NAME})
