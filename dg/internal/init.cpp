@@ -2,13 +2,18 @@
 
 using namespace Dragon;
 
-DGAPI DgBool32 createEngine(Engine* engine, std::string name) {
-	engine.name = name;
+DGAPI DgBool32 createEngine(Engine* engine, CreateInfo* createInfo) {
+	// Message Init
+	if(DRAGON_MESSAGE_ENABLED) {
+		engine->message.callback = &createInfo->pCallback;
+	}
+
+	engine->name = createInfo->name;
 	// Graphics Init
 	VkApplicationInfo appInfo{};
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	appInfo.apiVersion = VK_HEADER_VERSION_COMPLETE;
-	appInfo.pApplicationName = name.c_str();
+	appInfo.pApplicationName = engine->name.c_str();
 	appInfo.pEngineName = "DragonEngine";
 	appInfo.engineVersion = DRAGON_VERSION;
 
@@ -22,18 +27,23 @@ DGAPI DgBool32 createEngine(Engine* engine, std::string name) {
 	instanceCreateInfo.enabledExtensionCount = glfwExtensionCount;
 	instanceCreateInfo.enabledLayerCount = 0;
 	instanceCreateInfo.ppEnabledLayerNames = nullptr;
-	VkResult result = vkCreateInstance(&createInfo, nullptr, &engine.graphics.vkInstance);
-	
+	VkResult result = vkCreateInstance(&instanceCreateInfo, nullptr, &engine->graphics.vkInstance);
+	if(result != VK_SUCCESS) {
+		Message::Message message{};
+		message.code = 0xFF11000000000000 + result;
+		message.message = "vkCreateInstance failed with result " + Message::VkResultAsString(result);
+		Message::sendMessage(&message);
+	}
 
 
-	return engine;
+	return DG_TRUE;
 }
 
 DGAPI void updateEngine(Engine* engine) {
 
 }
 
-DGAPI void canEngineBeTerminated(Engine* engine) {
+DGAPI DgBool32 canEngineBeTerminated(Engine* engine) {
 	if(!engine->graphics.windows.empty()) {
 		return DG_FALSE;
 	}

@@ -1,6 +1,8 @@
 #include <dragon/dragon.hpp>
 
-DGAPI std::string dgConvertVkResultToString(VkResult result) {
+using namespace Dragon;
+
+DGAPI std::string Message::VkResultAsString(VkResult result) {
 	switch(result) {
 		case VK_SUCCESS: 												return "VK_SUCCESS";
 		case VK_NOT_READY: 												return "VK_NOT_READY";

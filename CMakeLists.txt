@@ -2,13 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 set(Dragon_LIB_NAME dragon-${Dragon_VERSION_MAJOR})
 
-set(CXX_FILES 
-	dg/audio/outputDevice.cpp 
-	dg/internal/gpu.cpp 
-	dg/internal/init.cpp 
-	dg/internal/option.cpp
-	dg/message/callbacks.cpp 
-)
+file(GLOB_RECURSE CXX_FILES ./dg/*.cpp)
 
 if(DRAGON_BUILD_SHARED)
 	add_library(${Dragon_LIB_NAME} SHARED ${CXX_FILES} ${HPP_FILES})
