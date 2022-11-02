@@ -2,7 +2,7 @@
 
 using namespace Dragon;
 
-DGAPI std::string Message::VkResultAsString(VkResult result) {
+DGAPI std::string Dragon::Message::VkResultAsString(VkResult result) {
 	switch(result) {
 		case VK_SUCCESS: 												return "VK_SUCCESS";
 		case VK_NOT_READY: 												return "VK_NOT_READY";
@@ -53,4 +53,10 @@ DGAPI std::string Message::VkResultAsString(VkResult result) {
 		case VK_OPERATION_NOT_DEFERRED_KHR:								return "VK_OPERATION_NOT_DEFERRED_KHR";
 		default:														return "VK_ERROR_UNKNOWN";
 	};
+}
+
+DGAPI void Dragon::Message::sendMessage(Dragon::Engine* pEngine, Dragon::Message::Message* pMessage) {
+	if(pEngine->message.pCallback != nullptr) {
+		pEngine->message.pCallback(pMessage);
+	}
 }

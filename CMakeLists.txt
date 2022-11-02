@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(Dragon_LIB_NAME dragon-${Dragon_VERSION_MAJOR})
 
 file(GLOB_RECURSE CXX_FILES ./dg/*.cpp)
 
@@ -11,5 +10,5 @@ else()
 	add_library(${Dragon_LIB_NAME} STATIC ${CXX_FILES} ${HPP_FILES})
 endif()
 target_include_directories(${Dragon_LIB_NAME} PUBLIC ${Dragon_INCLUDE_DIRS})
-target_link_libraries(${Dragon_LIB_NAME} PUBLIC glfw glm::glm openxr_loader OpenAL ${Vulkan_LIBRARIES})
+target_link_libraries(${Dragon_LIB_NAME} PUBLIC glfw glm::glm openxr_loader OpenAL ${Vulkan_LIBRARIES} ${OpenCL_LIBRARIES})
 add_library(Dragon::Dragon ALIAS ${Dragon_LIB_NAME})
