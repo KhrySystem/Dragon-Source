@@ -1,9 +1,9 @@
 #include <dragon/dragon.hpp>
 
-DGAPI DgBool32 Dragon::createWindow(Engine* pEngine, uint8_t width, uint8_t height, std::string title) {
+DGAPI DgBool32 Dragon::Graphics::createWindow(Dragon::Engine* pEngine, uint8_t width, uint8_t height, std::string title) {
     GLFWwindow* window;
     if(pEngine->graphics.windows.size() != 0) {
-        window = glfwCreateWindow(width, height, title.c_str(), NULL, pEngine->graphics.windows.at(0)));
+        window = glfwCreateWindow(width, height, title.c_str(), NULL, pEngine->graphics.windows.at(0));
     } else {
         window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
     }
